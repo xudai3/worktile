@@ -1,0 +1,10 @@
+.idea
+bin
+pkg
+.idea
+.vscode
+.DS_Store
+*/.DS_Store
+.python-version
+go.sum
+__pycache__
