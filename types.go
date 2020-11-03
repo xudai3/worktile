@@ -50,7 +50,7 @@ type TaskInfo struct {
 }
 
 type DateInfo struct {
-	Date int `json:"date"`
+	Date int64 `json:"date"`
 	WithTime int `json:"with_time"`
 }
 
