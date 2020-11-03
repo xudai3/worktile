@@ -1,60 +1,66 @@
 package worktile
 
-type HookUpdateState struct {
+type HookCreateTask struct {
 	Event string `json:"event"`
-	Payload TaskUpdateState `json:"payload"`
+	Payload PayloadCreateTask `json:"payload"`
+}
+
+type HookUpdateState struct {
+	Event   string             `json:"event"`
+	Payload PayloadUpdateState `json:"payload"`
 }
 
 type HookAssignee struct {
-	Event string `json:"event"`
-	Payload TaskAssignee `json:"payload"`
+	Event   string          `json:"event"`
+	Payload PayloadAssignee `json:"payload"`
 }
 
-type TaskUpdateState struct {
-	Task TaskDetail `json:"task"`
-	UpdateBy UserDetail `json:"update_by"`
-	From TaskState `json:"from"`
-	To TaskState `json:"to"`
+type PayloadCreateTask struct {
+	ID string `json:"id"`
+	Title string `json:"title"`
+	Identifier string `json:"identifier"`
+	Type CommonInfo `json:"type"`
+	Project CommonInfo `json:"project"`	
+	Creator CommonInfo `json:"creator"`
+	Assignee CommonUserInfo `json:"assignee"`
+	Due DateInfo `json:"due"`
 }
 
-type TaskDetail struct {
+type PayloadUpdateState struct {
+	Task     TaskInfo       `json:"task"`
+	UpdateBy CommonUserInfo `json:"update_by"`
+	From     CommonInfo     `json:"from"`
+	To       CommonInfo     `json:"to"`
+}
+
+type PayloadAssignee struct {
+	Task     TaskInfo       `json:"task"`
+	UpdateBy CommonUserInfo `json:"update_by"`
+	From     CommonUserInfo `json:"from"`
+	To       CommonUserInfo `json:"to"`
+}
+
+type TaskInfo struct {
 	Id string `json:"id"`
 	Title string `json:"title"`
 	Identifier string `json:"identifier"`
-	Type TaskType `json:"type"`
-	Project ProjectDetail `json:"project"`
-	State StateDetail `json:"state"`
+	Type CommonInfo `json:"type"`
+	Project CommonInfo `json:"project"`
+	State CommonInfo `json:"state"`
 }
 
-type UserDetail struct {
+type DateInfo struct {
+	Date string `json:"date"`
+	WithTime int `json:"with_time"`
+}
+
+type CommonInfo struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+}
+
+type CommonUserInfo struct {
 	Uid string `json:"id"`
 	UserName string `json:"user_name"`
 	DisplayName string `json:"display_name"`
-}
-
-type TaskState struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-}
-
-type TaskType struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-}
-
-type ProjectDetail struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-}
-
-type StateDetail struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-}
-
-type TaskAssignee struct {
-	Task TaskDetail `json:"task"`
-	UpdateBy UserDetail `json:"update_by"`
-	From UserDetail `json:"from"`
-	To UserDetail `json:"to"`
 }
