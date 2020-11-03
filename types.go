@@ -21,7 +21,7 @@ type PayloadCreateTask struct {
 	Identifier string `json:"identifier"`
 	Type CommonInfo `json:"type"`
 	Project CommonInfo `json:"project"`	
-	Creator CommonInfo `json:"creator"`
+	Creator CommonUserInfo `json:"creator"`
 	Assignee CommonUserInfo `json:"assignee"`
 	Due DateInfo `json:"due"`
 }
