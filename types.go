@@ -16,7 +16,7 @@ type HookAssignee struct {
 }
 
 type PayloadCreateTask struct {
-	ID string `json:"id"`
+	Id string `json:"id"`
 	Title string `json:"title"`
 	Identifier string `json:"identifier"`
 	Type CommonInfo `json:"type"`
@@ -60,7 +60,8 @@ type CommonInfo struct {
 }
 
 type CommonUserInfo struct {
-	Uid string `json:"id"`
+	Uid string `json:"uid"`
 	UserName string `json:"user_name"`
 	DisplayName string `json:"display_name"`
 }
+
