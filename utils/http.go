@@ -47,7 +47,7 @@ func (c *HttpClient) GetRequest(url string, headerOptions ...HeaderOption) ([]by
 
 func (c *HttpClient) Get(url string, params map[string]interface{}, headerOptions ...HeaderOption) ([]byte, error) {
 	fullUrl := url + ConvertToQueryParams(params)
-	fmt.Printf("full url:%s", fullUrl)
+	fmt.Printf("full url:%s\n", fullUrl)
 	return c.GetRequest(fullUrl, headerOptions...)
 }
 
@@ -71,7 +71,7 @@ func (c *HttpClient) PostRequest(url string, body interface{}, headerOptions ...
 
 func (c *HttpClient) Post(url string, param string, body interface{}, headerOptions ...HeaderOption) ([]byte, error) {
 	fullUrl := url + "/" + param
-	fmt.Printf("full url:%s", fullUrl)
+	fmt.Printf("full url:%s\n", fullUrl)
 	return c.PostRequest(fullUrl, body, headerOptions...)
 }
 
@@ -98,7 +98,7 @@ func respHandle(resp *http.Response, err error) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	//respBody := string(b)
+	fmt.Printf("resp:%s\n", string(b))
 	return b, nil
 }
 
