@@ -51,14 +51,15 @@ type AuthToken struct {
 }
 
 const (
-	GrantType = "authorization_code"
+	GrantTypeAuthCode = "authorization_code"
+	GrantTypeRefreshToken = "refresh_token"
 )
 
-func (w *Worktile) GetAuthCode(responseType string, clientId string, redirectUri string, scope string) string {
+func (w *Worktile) GetAuthCode(responseType string, scope string) string {
 	req := GetAuthCodeReq{
 		ResponseType: responseType,
-		ClientId: clientId,
-		RedirectUri: redirectUri,
+		ClientId: w.ClientId,
+		RedirectUri: w.RedirectUri,
 		Scope: scope,
 	}
 	rsp := &GetAuthCodeRsp{}
@@ -67,12 +68,26 @@ func (w *Worktile) GetAuthCode(responseType string, clientId string, redirectUri
 	return rsp.Code
 }
 
-func (w *Worktile) GetAuthToken(clientId string, clientSecret string, redirectUri string, code string) *AuthToken {
+func (w *Worktile) GetAuthToken(code string) *AuthToken {
 	req := GetAuthTokenReq{
-		ClientId: clientId,
-		ClientSecret: clientSecret,
-		RedirectUri: redirectUri,
-		Code: code,
+		ClientId:     w.ClientId,
+		ClientSecret: w.ClientSecret,
+		RedirectUri:  w.RedirectUri,
+		Code:         code,
+		GrantType:    GrantTypeAuthCode,
+	}
+	rsp := &AuthToken{}
+	data, _ := w.Client.Post(ApiGetAuthToken, "", req)
+	json.Unmarshal(data, rsp)
+	return rsp
+}
+
+func (w *Worktile) RefreshAuthToken() *AuthToken {
+	req := RefreshAuthTokenReq{
+		ClientId: w.ClientId,
+		ClientSecret: w.ClientSecret,
+		GrantType: GrantTypeRefreshToken,
+		RefreshToken: w.Token.RefreshToken,
 	}
 	rsp := &AuthToken{}
 	data, _ := w.Client.Post(ApiGetAuthToken, "", req)
