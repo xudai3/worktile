@@ -6,7 +6,7 @@ import (
 )
 
 type Worktile struct {
-	Token *AuthToken `json:"token"`
+	//Token *AuthToken `json:"token"`
 	Client *utils.HttpClient `json:"client"`
 	ClientId string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`

@@ -82,12 +82,12 @@ func (w *Worktile) GetAuthToken(code string) *AuthToken {
 	return rsp
 }
 
-func (w *Worktile) RefreshAuthToken() *AuthToken {
+func (w *Worktile) RefreshAuthToken(refreshToken string) *AuthToken {
 	req := RefreshAuthTokenReq{
 		ClientId: w.ClientId,
 		ClientSecret: w.ClientSecret,
 		GrantType: GrantTypeRefreshToken,
-		RefreshToken: w.Token.RefreshToken,
+		RefreshToken: refreshToken,
 	}
 	rsp := &AuthToken{}
 	data, _ := w.Client.Post(ApiGetAuthToken, "", req)
