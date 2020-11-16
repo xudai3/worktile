@@ -13,8 +13,8 @@ type GetAuthCodeReq struct {
 }
 
 type GetAuthCodeRsp struct {
-	Code string `json:"code"`
-	State string `json:"state"`
+	Code string `json:"code" form:"code"`
+	State string `json:"state" form:"state"`
 }
 
 type GetAuthTokenReq struct {
