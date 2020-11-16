@@ -31,7 +31,7 @@ type TaskDetailsRsp struct {
 func (w *Worktile) GetTask(taskId string, accessToken string) *TaskDetailsRsp {
 	req := &TaskDetailsReq{TaskId:taskId}
 	rsp := &TaskDetailsRsp{}
-	bytes, err := w.Client.Get(ApiGetTaskDetail, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
+	bytes, err := w.Client.GetWithParam(ApiGetTaskDetail, req.TaskId, utils.BuildTokenHeaderOptions(accessToken))
 	if err != nil {
 		return nil
 	}

@@ -51,6 +51,12 @@ func (c *HttpClient) Get(url string, params map[string]interface{}, headerOption
 	return c.GetRequest(fullUrl, headerOptions...)
 }
 
+func (c *HttpClient) GetWithParam(url string, param string, headerOptions ...HeaderOption) ([]byte, error) {
+	fullUrl := url + "/" + param
+	fmt.Printf("full url:%s\n", fullUrl)
+	return c.GetRequest(fullUrl, headerOptions...)
+}
+
 func (c *HttpClient) PostRequest(url string, body interface{}, headerOptions ...HeaderOption) ([]byte, error) {
 	buf, err := json.Marshal(body)
 	if err != nil {
