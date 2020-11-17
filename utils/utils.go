@@ -1,6 +1,8 @@
 package utils
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 func ConvertStructToMap(item interface{}) map[string]interface{} {
 	data, _ := json.Marshal(item)

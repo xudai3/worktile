@@ -15,6 +15,16 @@ type HookAssignee struct {
 	Payload PayloadAssignee `json:"payload"`
 }
 
+type HookUpdateTitle struct {
+	Event string `json:"event"`
+	Payload PayloadUpdateTitle `json:"payload"`
+}
+
+type HookUpdateDesc struct {
+	Event string `json:"event"`
+	Payload PayloadUpdateTitle `json:"payload"`
+}
+
 type PayloadCreateTask struct {
 	Id string `json:"id"`
 	Title string `json:"title"`
@@ -38,6 +48,13 @@ type PayloadAssignee struct {
 	UpdateBy CommonUserInfo `json:"update_by"`
 	From     CommonUserInfo `json:"from"`
 	To       CommonUserInfo `json:"to"`
+}
+
+type PayloadUpdateTitle struct {
+	From string `json:"from"`	
+	To string `json:"to"`
+	Task TaskInfo `json:"task"`
+	UpdateBy CommonUserInfo `json:"update_by"`
 }
 
 type TaskInfo struct {

@@ -2,39 +2,79 @@ package worktile
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/xudai3/worktile/utils"
+	"strings"
 )
 
 type TaskDetailsReq struct {
-	//AccessToken string `json:"access_token"`
-	TaskId string `json:"task_id"`
+	AccessToken string `json:"access_token"`
+	Fields string `json:"fields"`
+	TaskIds string `json:"task_ids"`
 }
 
-type TaskDetailsRsp struct {
+type TaskDetail struct {
 	Id string `json:"_id"`
-	Title string `json:"title"`
-	Description string `json:"description"`
-	IsDeleted int `json:"is_deleted"` //任务是否被删除。0：未删除，1：已删除
+	CreatedBy string `json:"created_by"`
+	CreatedAt int64 `json:"created_at"`
 	IsArchived int `json:"is_archived"` //任务是否被归档。0：未归档，1：已归档
-	Type int `json:"type"` //任务类型。0：普通任务，1：任务模板
-	Priority int `json:"priority"` //任务优先级。0：无优先级，1：低，2：中，3：高
-	Visibility int `json:"visibility"` //任务可见性。0：公开，1：私有
-	Entry string `json:"entry"` //任务所在的列表ID，无列表时无此属性
-	EntryName string `json:"entry_name"` //任务所在列表的名字（如无列表则无此属性）
-	Children []interface{} `json:"children"`
-	Watchers []interface{} `json:"watchers"`
-	DueDate DateInfo `json:"due_date"` //任务截止日期（无截止日期则无此属性）
-	CreatedBy CommonUserInfo `json:"created_by"`
-	UpdatedBy CommonUserInfo `json:"updated_by"`
+	Title string `json:"title"`
+	Identifier string `json:"identifier"`
+	ProjectId string `json:"project_id"`
+	Properties TaskProperty `json:"properties"`
+	ParentId string `json:"parent_id"`
+	ParentIds []string `json:"parent_ids"`
+	DerivedIds []string `json:"derived_ids"`
+	TaskState TaskState `json:"task_state"`
 }
 
-func (w *Worktile) GetTask(taskId string, accessToken string) *TaskDetailsRsp {
-	req := &TaskDetailsReq{TaskId:taskId}
-	rsp := &TaskDetailsRsp{}
-	bytes, err := w.Client.GetWithParam(ApiGetTaskDetail, req.TaskId, utils.BuildTokenHeaderOptions(accessToken))
+type TaskProperty struct {
+	Assignee string `json:"assignee"`
+}
+
+type TaskState struct {
+	Id string `json:"_id"`	
+	Name string `json:"name"`
+	Type int `json:"type"`
+	Description string `json:"description"`
+}
+
+const defaultTaskFields = "assignee,workload"
+
+func (w *Worktile) GetTasksByIds(accessToken string, taskIds []string) []TaskDetail {
+	req := TaskDetailsReq{AccessToken:accessToken, Fields:defaultTaskFields, TaskIds:strings.Join(taskIds, ",")}
+	var rsp []TaskDetail
+	bytes, err := w.Client.Get(ApiGetTaskDetail, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
 	if err != nil {
+		fmt.Printf("get task:%v detail failed:%v\n", taskIds, err)
 		return nil
 	}
-	json.Unmarshal(bytes, rsp)
+	json.Unmarshal(bytes, &rsp)
 	return rsp
+}
+
+func (w *Worktile) GetTaskById(accessToken string, taskId string) TaskDetail {
+	req := TaskDetailsReq{AccessToken:accessToken, Fields:defaultTaskFields, TaskIds:taskId}
+	var rsp []TaskDetail
+	bytes, err := w.Client.Get(ApiGetTaskDetail, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
+	if err != nil {
+		fmt.Printf("get task:%s detail failed:%v\n", taskId, err)
+		return TaskDetail{}
+	}
+	json.Unmarshal(bytes, &rsp)
+	return rsp[0]
+}
+
+func (w *Worktile) GetMainTaskDetail(accessToken string, taskId string) TaskDetail {
+	var mainTaskId string
+	mainTaskId = taskId
+	for {
+		mainTask := w.GetTaskById(accessToken, mainTaskId)
+		if mainTask.ParentId == "" {
+			break
+		} else {
+			mainTaskId = mainTask.ParentId
+		}
+	}
+	return w.GetTaskById(accessToken, mainTaskId)
 }

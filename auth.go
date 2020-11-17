@@ -50,6 +50,15 @@ type AuthToken struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+type GetTenantReq struct {
+	ClientId string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+}
+
+type Tenant struct {
+	TenantAccessToken string `json:"tenant_access_token"`
+}
+
 const (
 	GrantTypeAuthCode = "authorization_code"
 	GrantTypeRefreshToken = "refresh_token"
@@ -77,7 +86,15 @@ func (w *Worktile) GetAuthToken(code string) *AuthToken {
 		GrantType:    GrantTypeAuthCode,
 	}
 	rsp := &AuthToken{}
-	data, _ := w.Client.Post(ApiGetAuthToken, "", req)
+	data, _ := w.Client.Post(ApiGetTenant, "", req)
+	json.Unmarshal(data, rsp)
+	return rsp
+}
+
+func (w *Worktile) GetTenant() *Tenant {
+	req := GetTenantReq{ClientId:w.ClientId, ClientSecret:w.ClientSecret}
+	rsp := &Tenant{}
+	data, _ := w.Client.Post(ApiGetTenant, "", req)
 	json.Unmarshal(data, rsp)
 	return rsp
 }
@@ -90,7 +107,7 @@ func (w *Worktile) RefreshAuthToken(refreshToken string) *AuthToken {
 		RefreshToken: refreshToken,
 	}
 	rsp := &AuthToken{}
-	data, _ := w.Client.Post(ApiGetAuthToken, "", req)
+	data, _ := w.Client.Post(ApiGetTenant, "", req)
 	json.Unmarshal(data, rsp)
 	return rsp
 }
