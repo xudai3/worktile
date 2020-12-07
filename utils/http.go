@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/xudai3/worktile/logger"
 	"io/ioutil"
 	"net/http"
 )
@@ -47,13 +48,13 @@ func (c *HttpClient) GetRequest(url string, headerOptions ...HeaderOption) ([]by
 
 func (c *HttpClient) Get(url string, params map[string]interface{}, headerOptions ...HeaderOption) ([]byte, error) {
 	fullUrl := url + ConvertToQueryParams(params)
-	fmt.Printf("full url:%s\n", fullUrl)
+	logger.Debugf("full url:%s\n", fullUrl)
 	return c.GetRequest(fullUrl, headerOptions...)
 }
 
 func (c *HttpClient) GetWithParam(url string, param string, headerOptions ...HeaderOption) ([]byte, error) {
 	fullUrl := url + "/" + param
-	fmt.Printf("full url:%s\n", fullUrl)
+	logger.Debugf("full url:%s\n", fullUrl)
 	return c.GetRequest(fullUrl, headerOptions...)
 }
 
@@ -77,7 +78,7 @@ func (c *HttpClient) PostRequest(url string, body interface{}, headerOptions ...
 
 func (c *HttpClient) Post(url string, param string, body interface{}, headerOptions ...HeaderOption) ([]byte, error) {
 	fullUrl := url + "/" + param
-	fmt.Printf("full url:%s\n", fullUrl)
+	logger.Debugf("full url:%s\n", fullUrl)
 	return c.PostRequest(fullUrl, body, headerOptions...)
 }
 
@@ -91,7 +92,7 @@ func BuildTokenHeaderOptions(accessToken string) HeaderOption {
 func respDeferClose(resp *http.Response) {
 	if resp != nil {
 		if e := resp.Body.Close(); e != nil {
-			fmt.Println(e)
+			logger.Error(e)
 		}
 	}
 }
@@ -104,18 +105,11 @@ func respHandle(resp *http.Response, err error) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("resp:%s\n", string(b))
+	logger.Debugf("resp:%s\n", string(b))
 	return b, nil
 }
 
 func ConvertToQueryParams(params map[string]interface{}) string {
-	//bs, err := json.Marshal(params)
-	//if err != nil {
-	//	return ""
-	//}
-	//params = map[string]interface{}{}
-	//_ = json.Unmarshal(bs, &params)
-	//
 	if params == nil || len(params) == 0 {
 		return ""
 	}

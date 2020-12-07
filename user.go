@@ -2,7 +2,7 @@ package worktile
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/xudai3/worktile/logger"
 	"github.com/xudai3/worktile/utils"
 )
 
@@ -25,7 +25,7 @@ func (w *Worktile) GetUserByUid(accessToken string, uid string) UserDetail {
 	var rsp []UserDetail
 	bytes, err := w.Client.Get(ApiGetUserByUid, utils.ConvertStructToMap(req))
 	if err != nil {
-		fmt.Printf("get user by uid:%s failed:%v\n", uid, err)
+		logger.Debugf("get user by uid:%s failed:%v\n", uid, err)
 		return UserDetail{}
 	}
 	json.Unmarshal(bytes, &rsp)

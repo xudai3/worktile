@@ -2,7 +2,7 @@ package worktile
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/xudai3/worktile/logger"
 	"github.com/xudai3/worktile/utils"
 	"strings"
 )
@@ -46,7 +46,7 @@ func (w *Worktile) GetTasksByIds(accessToken string, taskIds []string) []TaskDet
 	var rsp []TaskDetail
 	bytes, err := w.Client.Get(ApiGetTaskDetail, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
 	if err != nil {
-		fmt.Printf("get task:%v detail failed:%v\n", taskIds, err)
+		logger.Debugf("get task:%v detail failed:%v\n", taskIds, err)
 		return nil
 	}
 	json.Unmarshal(bytes, &rsp)
@@ -58,7 +58,7 @@ func (w *Worktile) GetTaskById(accessToken string, taskId string) TaskDetail {
 	var rsp []TaskDetail
 	bytes, err := w.Client.Get(ApiGetTaskDetail, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
 	if err != nil {
-		fmt.Printf("get task:%s detail failed:%v\n", taskId, err)
+		logger.Debugf("get task:%s detail failed:%v\n", taskId, err)
 		return TaskDetail{}
 	}
 	json.Unmarshal(bytes, &rsp)

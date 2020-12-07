@@ -1,6 +1,7 @@
 package worktile
 
 import (
+	"github.com/xudai3/worktile/logger"
 	"github.com/xudai3/worktile/utils"
 	"net/http"
 )
@@ -13,7 +14,8 @@ type Worktile struct {
 	RedirectUri string `json:"redirect_uri"`
 }
 
-func NewWorktile(clientId string, clientSecret string, redirectUri string) *Worktile {
+func NewWorktile(clientId string, clientSecret string, redirectUri string, logLevel string) *Worktile {
+	logger.InitLogger(logLevel)
 	w := &Worktile{
 		Client: utils.NewHttpClient(&http.Client{}),
 		ClientId: clientId,

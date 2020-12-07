@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestNewWorktile(t *testing.T) {
+func TestConvertStructToMap(t *testing.T) {
 	req := GetAuthCodeReq{
 		ResponseType: "types",
 		ClientId: "ids",
