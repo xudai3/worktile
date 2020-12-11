@@ -20,14 +20,22 @@ type UserDetail struct {
 	DisplayNamePinyin string `json:"display_name_pinyin"`
 }
 
-func (w *Worktile) GetUserByUid(accessToken string, uid string) UserDetail {
+func (w *Worktile) GetUserByUid(accessToken string, uid string) *UserDetail {
 	req := UserDetailReq{AccessToken:accessToken, Uids:uid}
-	var rsp []UserDetail
+	var rsp []*UserDetail
 	bytes, err := w.Client.Get(ApiGetUserByUid, utils.ConvertStructToMap(req))
 	if err != nil {
 		logger.Debugf("get user by uid:%s failed:%v\n", uid, err)
-		return UserDetail{}
+		return nil
 	}
-	json.Unmarshal(bytes, &rsp)
-	return rsp[0]
+	err = json.Unmarshal(bytes, &rsp)
+	if err != nil {
+		logger.Errorf("unmarshal user details error:%v", err)
+		return nil
+	}
+	if len(rsp) > 0 {
+		return rsp[0]
+	} else {
+		return nil
+	}
 }

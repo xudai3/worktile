@@ -53,24 +53,68 @@ func (w *Worktile) GetTasksByIds(accessToken string, taskIds []string) []TaskDet
 	return rsp
 }
 
-func (w *Worktile) GetTaskById(accessToken string, taskId string) TaskDetail {
+func (w *Worktile) GetTaskById(accessToken string, taskId string) *TaskDetail {
 	req := TaskDetailsReq{AccessToken:accessToken, Fields:defaultTaskFields, TaskIds:taskId}
-	var rsp []TaskDetail
+	var rsp []*TaskDetail
 	bytes, err := w.Client.Get(ApiGetTaskDetail, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
 	if err != nil {
-		logger.Debugf("get task:%s detail failed:%v\n", taskId, err)
-		return TaskDetail{}
+		logger.Errorf("get task:%s detail failed:%v\n", taskId, err)
+		return nil
 	}
-	json.Unmarshal(bytes, &rsp)
-	return rsp[0]
+	err = json.Unmarshal(bytes, &rsp)
+	if err != nil {
+		logger.Errorf("unmarshal taskdetails error:%v", err)
+		return nil
+	}
+	if len(rsp) > 0 {
+		return rsp[0]
+	} else {
+		return nil
+	}
 }
 
-func (w *Worktile) GetMainTaskDetail(accessToken string, taskId string) TaskDetail {
+func (w *Worktile) GetAllSubTasks(accessToken string, taskId string) []TaskDetail {
+	taskIds := make([]string, 0)
+	tasks := make([]TaskDetail, 0)
+	currentTask := w.GetTaskById(accessToken, taskId)
+	if currentTask == nil {
+		return tasks
+	}
+	if len(currentTask.DerivedIds) == 0 {
+		return tasks
+	}
+	taskIds = append(taskIds, currentTask.DerivedIds...)
+	for len(taskIds) > 0 {
+		subTasks := w.GetTasksByIds(accessToken, taskIds)
+		taskIds = nil
+		for _, subTask := range subTasks {
+			taskIds = append(taskIds, subTask.Id)
+			tasks = append(tasks, subTask)
+		}
+	}
+	return tasks
+}
+
+func (w *Worktile) GetAllAssignees(accessToken string, taskId string) []string {
+	assignees := make([]string, 0)
+	currentTask := w.GetTaskById(accessToken, taskId)
+	if currentTask == nil {
+		return assignees
+	}
+	tasks := w.GetAllSubTasks(accessToken, taskId)
+	assignees = append(assignees, currentTask.Properties.Assignee)
+	for _, task := range tasks {
+		assignees = append(assignees, task.Properties.Assignee)
+	}
+	return assignees
+}
+
+func (w *Worktile) GetMainTaskDetail(accessToken string, taskId string) *TaskDetail {
 	var mainTaskId string
 	mainTaskId = taskId
 	for {
 		mainTask := w.GetTaskById(accessToken, mainTaskId)
-		if mainTask.ParentId == "" {
+		if mainTask == nil || mainTask.ParentId == "" {
 			break
 		} else {
 			mainTaskId = mainTask.ParentId
