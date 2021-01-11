@@ -9,23 +9,23 @@ import (
 
 type TaskDetailsReq struct {
 	AccessToken string `json:"access_token"`
-	Fields string `json:"fields"`
-	TaskIds string `json:"task_ids"`
+	Fields      string `json:"fields"`
+	TaskIds     string `json:"task_ids"`
 }
 
 type TaskDetail struct {
-	Id string `json:"_id"`
-	CreatedBy string `json:"created_by"`
-	CreatedAt int64 `json:"created_at"`
-	IsArchived int `json:"is_archived"` //任务是否被归档。0：未归档，1：已归档
-	Title string `json:"title"`
-	Identifier string `json:"identifier"`
-	ProjectId string `json:"project_id"`
+	Id         string       `json:"_id"`
+	CreatedBy  string       `json:"created_by"`
+	CreatedAt  int64        `json:"created_at"`
+	IsArchived int          `json:"is_archived"` //任务是否被归档。0：未归档，1：已归档
+	Title      string       `json:"title"`
+	Identifier string       `json:"identifier"`
+	ProjectId  string       `json:"project_id"`
 	Properties TaskProperty `json:"properties"`
-	ParentId string `json:"parent_id"`
-	ParentIds []string `json:"parent_ids"`
-	DerivedIds []string `json:"derived_ids"`
-	TaskState TaskState `json:"task_state"`
+	ParentId   string       `json:"parent_id"`
+	ParentIds  []string     `json:"parent_ids"`
+	DerivedIds []string     `json:"derived_ids"`
+	TaskState  TaskState    `json:"task_state"`
 }
 
 type TaskProperty struct {
@@ -33,16 +33,16 @@ type TaskProperty struct {
 }
 
 type TaskState struct {
-	Id string `json:"_id"`	
-	Name string `json:"name"`
-	Type int `json:"type"`
+	Id          string `json:"_id"`
+	Name        string `json:"name"`
+	Type        int    `json:"type"`
 	Description string `json:"description"`
 }
 
 const defaultTaskFields = "assignee,workload"
 
 func (w *Worktile) GetTasksByIds(accessToken string, taskIds []string) []TaskDetail {
-	req := TaskDetailsReq{AccessToken:accessToken, Fields:defaultTaskFields, TaskIds:strings.Join(taskIds, ",")}
+	req := TaskDetailsReq{AccessToken: accessToken, Fields: defaultTaskFields, TaskIds: strings.Join(taskIds, ",")}
 	var rsp []TaskDetail
 	bytes, err := w.Client.Get(ApiGetTaskDetail, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
 	if err != nil {
@@ -54,7 +54,7 @@ func (w *Worktile) GetTasksByIds(accessToken string, taskIds []string) []TaskDet
 }
 
 func (w *Worktile) GetTaskById(accessToken string, taskId string) *TaskDetail {
-	req := TaskDetailsReq{AccessToken:accessToken, Fields:defaultTaskFields, TaskIds:taskId}
+	req := TaskDetailsReq{AccessToken: accessToken, Fields: defaultTaskFields, TaskIds: taskId}
 	var rsp []*TaskDetail
 	bytes, err := w.Client.Get(ApiGetTaskDetail, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
 	if err != nil {
@@ -88,14 +88,17 @@ func (w *Worktile) GetAllSubTasks(accessToken string, taskId string) []TaskDetai
 		subTasks := w.GetTasksByIds(accessToken, taskIds)
 		taskIds = nil
 		for _, subTask := range subTasks {
-			taskIds = append(taskIds, subTask.Id)
+			logger.Debugf("subTask:%+v title:%s", subTask, subTask.Title)
+			if len(subTask.DerivedIds) != 0 {
+				taskIds = append(taskIds, subTask.DerivedIds...)
+			}
 			tasks = append(tasks, subTask)
 		}
 	}
 	return tasks
 }
 
-func (w *Worktile) GetAllAssignees(accessToken string, taskId string) []string {
+func (w *Worktile) GetAllAssigneeUids(accessToken string, taskId string) []string {
 	assignees := make([]string, 0)
 	currentTask := w.GetTaskById(accessToken, taskId)
 	if currentTask == nil {
@@ -107,6 +110,16 @@ func (w *Worktile) GetAllAssignees(accessToken string, taskId string) []string {
 		assignees = append(assignees, task.Properties.Assignee)
 	}
 	return assignees
+}
+
+func (w *Worktile) GetAllAssigneeNames(accessToken string, taskId string) []string {
+	assignees := w.GetAllAssigneeUids(accessToken, taskId)
+	users := w.GetUsersByUids(accessToken, assignees)
+	names := make([]string, 0, len(users))
+	for _, user := range users {
+		names = append(names, user.DisplayName)
+	}
+	return names
 }
 
 func (w *Worktile) GetMainTaskDetail(accessToken string, taskId string) *TaskDetail {

@@ -39,3 +39,14 @@ func (w *Worktile) GetUserByUid(accessToken string, uid string) *UserDetail {
 		return nil
 	}
 }
+
+func (w *Worktile) GetUsersByUids(accessToken string, uids []string) []*UserDetail {
+	var rsp []*UserDetail
+	for _, uid := range uids {
+		user := w.GetUserByUid(accessToken, uid)
+		if user != nil {
+			rsp = append(rsp, user)
+		}
+	}
+	return rsp
+}
