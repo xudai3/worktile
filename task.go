@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/xudai3/worktile/logger"
 	"github.com/xudai3/worktile/utils"
+	"regexp"
 	"strings"
 )
 
@@ -73,6 +74,29 @@ func (w *Worktile) GetTaskById(accessToken string, taskId string) *TaskDetail {
 	}
 }
 
+func (w *Worktile) GetAssigneeNameByTaskId(accessToken string, taskId string) string {
+	task := w.GetTaskById(accessToken, taskId)
+	assigneeUid := task.Properties.Assignee
+	if assigneeUid == "" {
+		logger.Errorf("assignee is empty")
+		return ""
+	}
+	assignee := w.GetUserByUid(accessToken, assigneeUid)
+	return assignee.DisplayName
+}
+
+func (w *Worktile) GetSubTasks(accessToken string, taskId string) []TaskDetail {
+	currentTask := w.GetTaskById(accessToken, taskId)
+	tasks := make([]TaskDetail, 0)
+	if currentTask == nil || len(currentTask.DerivedIds) == 0 {
+		return tasks
+	}
+	taskIds := make([]string, 0)
+	taskIds = append(taskIds, currentTask.DerivedIds...)
+	tasks = w.GetTasksByIds(accessToken, taskIds)
+	return tasks
+}
+
 func (w *Worktile) GetAllSubTasks(accessToken string, taskId string) []TaskDetail {
 	taskIds := make([]string, 0)
 	tasks := make([]TaskDetail, 0)
@@ -107,13 +131,45 @@ func (w *Worktile) GetAllAssigneeUids(accessToken string, taskId string) []strin
 	tasks := w.GetAllSubTasks(accessToken, taskId)
 	assignees = append(assignees, currentTask.Properties.Assignee)
 	for _, task := range tasks {
-		assignees = append(assignees, task.Properties.Assignee)
+		if task.Properties.Assignee != "" {
+			assignees = append(assignees, task.Properties.Assignee)
+		}
 	}
 	return assignees
 }
 
 func (w *Worktile) GetAllAssigneeNames(accessToken string, taskId string) []string {
-	assignees := w.GetAllAssigneeUids(accessToken, taskId)
+	assigneeUids := w.GetAllAssigneeUids(accessToken, taskId)
+	users := w.GetUsersByUids(accessToken, assigneeUids)
+	names := make([]string, 0, len(users))
+	for _, user := range users {
+		names = append(names, user.DisplayName)
+	}
+	return names
+}
+
+func (w *Worktile) GetAllAssigneeUidsFilterByTitle(accessToken string, taskId string, filter string) []string {
+	assignees := make([]string, 0)
+	currentTask := w.GetTaskById(accessToken, taskId)
+	if currentTask == nil {
+		return assignees
+	}
+	tasks := w.GetAllSubTasks(accessToken, taskId)
+	r := regexp.MustCompile(filter)
+	if matched := r.MatchString(currentTask.Title); matched {
+		assignees = append(assignees, currentTask.Properties.Assignee)
+	}
+	for _, task := range tasks {
+		matched := r.MatchString(task.Title)
+		if matched && task.Properties.Assignee != "" {
+			assignees = append(assignees, task.Properties.Assignee)
+		}
+	}
+	return assignees
+}
+
+func (w *Worktile) GetAllAssigneeNamesFilterByTitle(accessToken string, taskId string, filter string) []string {
+	assignees := w.GetAllAssigneeUidsFilterByTitle(accessToken, taskId, filter)
 	users := w.GetUsersByUids(accessToken, assignees)
 	names := make([]string, 0, len(users))
 	for _, user := range users {

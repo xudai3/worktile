@@ -8,6 +8,12 @@ const (
 )
 
 const (
+	StatusInactivated = "未激活"
+	StatusInDesign = "设计中"
+	StatusInDevelop = "研发中"
+	StatusInTest = "测试中"
+	StatusAccepted = "已验收"
+	StatusPublished = "已发布"
 	StatusNotStarted = "未开始"
 	StatusInProgress = "进行中"
 	StatusToBeConfirmed = "待确认"
