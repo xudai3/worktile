@@ -2,114 +2,117 @@ package worktile
 
 import (
 	"encoding/json"
-	"github.com/xudai3/worktile/logger"
-	"github.com/xudai3/worktile/utils"
+	"errors"
+	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/xudai3/worktile/logger"
+	"github.com/xudai3/worktile/utils"
 )
 
-type TaskDetailsReq struct {
-	AccessToken string `json:"access_token"`
-	Fields      string `json:"fields"`
-	TaskIds     string `json:"task_ids"`
-}
-
-type TaskDetail struct {
-	Id         string       `json:"_id"`
-	CreatedBy  string       `json:"created_by"`
-	CreatedAt  int64        `json:"created_at"`
-	IsArchived int          `json:"is_archived"` //任务是否被归档。0：未归档，1：已归档
-	Title      string       `json:"title"`
-	Identifier string       `json:"identifier"`
-	ProjectId  string       `json:"project_id"`
-	Properties TaskProperty `json:"properties"`
-	ParentId   string       `json:"parent_id"`
-	ParentIds  []string     `json:"parent_ids"`
-	DerivedIds []string     `json:"derived_ids"`
-	TaskState  TaskState    `json:"task_state"`
-}
-
-type TaskProperty struct {
-	Assignee string `json:"assignee"`
-}
-
-type TaskState struct {
-	Id          string `json:"_id"`
-	Name        string `json:"name"`
-	Type        int    `json:"type"`
-	Description string `json:"description"`
-}
-
-const defaultTaskFields = "assignee,workload"
-
-func (w *Worktile) GetTasksByIds(accessToken string, taskIds []string) []TaskDetail {
-	req := TaskDetailsReq{AccessToken: accessToken, Fields: defaultTaskFields, TaskIds: strings.Join(taskIds, ",")}
+func (w *Worktile) GetTasksByIds(accessToken string, taskIds []string, fields []string) ([]TaskDetail, error) {
+	var taskFields string
 	var rsp []TaskDetail
+	if len(taskIds) == 0 {
+		return nil, errors.New("taskIds empty")
+	}
+	if len(fields) == 0 {
+		taskFields = DefaultTaskFields
+	} else {
+		taskFields = strings.Join(fields, ",")
+	}
+	req := GetTaskDetailsReq{AccessToken: accessToken, Fields: taskFields, TaskIds: strings.Join(taskIds, ",")}
 	bytes, err := w.Client.Get(ApiGetTaskDetail, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
 	if err != nil {
 		logger.Debugf("get task:%v detail failed:%v\n", taskIds, err)
-		return nil
+		return nil, err
 	}
-	json.Unmarshal(bytes, &rsp)
-	return rsp
+	err = json.Unmarshal(bytes, &rsp)
+	if err != nil {
+		return nil, err
+	}
+	return rsp, nil
 }
 
-func (w *Worktile) GetTaskById(accessToken string, taskId string) *TaskDetail {
-	req := TaskDetailsReq{AccessToken: accessToken, Fields: defaultTaskFields, TaskIds: taskId}
+func (w *Worktile) GetTaskById(accessToken string, taskId string) (*TaskDetail, error) {
+	req := GetTaskDetailsReq{AccessToken: accessToken, Fields: DefaultTaskFields, TaskIds: taskId}
 	var rsp []*TaskDetail
 	bytes, err := w.Client.Get(ApiGetTaskDetail, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
 	if err != nil {
 		logger.Errorf("get task:%s detail failed:%v\n", taskId, err)
-		return nil
+		return nil, err
 	}
 	err = json.Unmarshal(bytes, &rsp)
 	if err != nil {
 		logger.Errorf("unmarshal taskdetails error:%v", err)
-		return nil
+		return nil, err
 	}
-	if len(rsp) > 0 {
-		return rsp[0]
-	} else {
-		return nil
+	if len(rsp) == 0 {
+		return nil, errors.New("result empty")
 	}
+	return rsp[0], nil
 }
 
-func (w *Worktile) GetAssigneeNameByTaskId(accessToken string, taskId string) string {
-	task := w.GetTaskById(accessToken, taskId)
+func (w *Worktile) GetAssigneeNameByTaskId(accessToken string, taskId string) (string, error) {
+	task, err := w.GetTaskById(accessToken, taskId)
+	if err != nil {
+		return "", err
+	}
 	assigneeUid := task.Properties.Assignee
 	if assigneeUid == "" {
-		logger.Errorf("assignee is empty")
-		return ""
+		err = fmt.Errorf("assignee is empty")
+		logger.Error(err.Error())
+		return "", err
 	}
-	assignee := w.GetUserByUid(accessToken, assigneeUid)
-	return assignee.DisplayName
+	assignee, err := w.GetUserByUid(accessToken, assigneeUid)
+	if err != nil {
+		return "", err
+	}
+	return assignee.DisplayName, nil
 }
 
-func (w *Worktile) GetSubTasks(accessToken string, taskId string) []TaskDetail {
-	currentTask := w.GetTaskById(accessToken, taskId)
-	tasks := make([]TaskDetail, 0)
-	if currentTask == nil || len(currentTask.DerivedIds) == 0 {
-		return tasks
+func (w *Worktile) GetSubTasks(accessToken string, taskId string) ([]TaskDetail, error) {
+	currentTask, err := w.GetTaskById(accessToken, taskId)
+	if err != nil {
+		return nil, err
+	}
+	var tasks []TaskDetail
+	if currentTask == nil {
+		return nil, errors.New("task empty")
+	}
+	if len(currentTask.DerivedIds) == 0 {
+		return nil, errors.New("derivedIds empty")
 	}
 	taskIds := make([]string, 0)
 	taskIds = append(taskIds, currentTask.DerivedIds...)
-	tasks = w.GetTasksByIds(accessToken, taskIds)
-	return tasks
+	tasks, err = w.GetTasksByIds(accessToken, taskIds, nil)
+	if err != nil {
+		return nil, err
+	}
+	return tasks, nil
 }
 
-func (w *Worktile) GetAllSubTasks(accessToken string, taskId string) []TaskDetail {
+func (w *Worktile) GetAllSubTasks(accessToken string, taskId string) ([]TaskDetail, error) {
 	taskIds := make([]string, 0)
 	tasks := make([]TaskDetail, 0)
-	currentTask := w.GetTaskById(accessToken, taskId)
+	currentTask, err := w.GetTaskById(accessToken, taskId)
+	if err != nil {
+		return nil, err
+	}
 	if currentTask == nil {
-		return tasks
+		return nil, errors.New("task empty")
 	}
 	if len(currentTask.DerivedIds) == 0 {
-		return tasks
+		return nil, errors.New("derivedIds empty")
 	}
 	taskIds = append(taskIds, currentTask.DerivedIds...)
 	for len(taskIds) > 0 {
-		subTasks := w.GetTasksByIds(accessToken, taskIds)
+		subTasks, err := w.GetTasksByIds(accessToken, taskIds, nil)
+		if err != nil {
+			logger.Error(err)
+			break
+		}
 		taskIds = nil
 		for _, subTask := range subTasks {
 			logger.Debugf("subTask:%+v title:%s", subTask, subTask.Title)
@@ -119,42 +122,63 @@ func (w *Worktile) GetAllSubTasks(accessToken string, taskId string) []TaskDetai
 			tasks = append(tasks, subTask)
 		}
 	}
-	return tasks
+	if len(tasks) == 0 {
+		return nil, errors.New("tasks empty")
+	}
+	return tasks, nil
 }
 
-func (w *Worktile) GetAllAssigneeUids(accessToken string, taskId string) []string {
+func (w *Worktile) GetAllAssigneeUids(accessToken string, taskId string) ([]string, error) {
 	assignees := make([]string, 0)
-	currentTask := w.GetTaskById(accessToken, taskId)
-	if currentTask == nil {
-		return assignees
+	currentTask, err := w.GetTaskById(accessToken, taskId)
+	if err != nil {
+		return nil, err
 	}
-	tasks := w.GetAllSubTasks(accessToken, taskId)
+	if currentTask == nil {
+		return assignees, errors.New("current task empty")
+	}
+	tasks, err := w.GetAllSubTasks(accessToken, taskId)
+	if err != nil {
+		return nil, err
+	}
 	assignees = append(assignees, currentTask.Properties.Assignee)
 	for _, task := range tasks {
 		if task.Properties.Assignee != "" {
 			assignees = append(assignees, task.Properties.Assignee)
 		}
 	}
-	return assignees
+	return assignees, nil
 }
 
-func (w *Worktile) GetAllAssigneeNames(accessToken string, taskId string) []string {
-	assigneeUids := w.GetAllAssigneeUids(accessToken, taskId)
-	users := w.GetUsersByUids(accessToken, assigneeUids)
+func (w *Worktile) GetAllAssigneeNames(accessToken string, taskId string) ([]string, error) {
+	assigneeUids, err := w.GetAllAssigneeUids(accessToken, taskId)
+	if err != nil {
+		return nil, err
+	}
+	users, err := w.GetUsersByUids(accessToken, assigneeUids)
+	if err != nil {
+		return nil, err
+	}
 	names := make([]string, 0, len(users))
 	for _, user := range users {
 		names = append(names, user.DisplayName)
 	}
-	return names
+	return names, nil
 }
 
-func (w *Worktile) GetAllAssigneeUidsFilterByTitle(accessToken string, taskId string, filter string) []string {
+func (w *Worktile) GetAllAssigneeUidsFilterByTitle(accessToken string, taskId string, filter string) ([]string, error) {
 	assignees := make([]string, 0)
-	currentTask := w.GetTaskById(accessToken, taskId)
-	if currentTask == nil {
-		return assignees
+	currentTask, err := w.GetTaskById(accessToken, taskId)
+	if err != nil {
+		return nil, err
 	}
-	tasks := w.GetAllSubTasks(accessToken, taskId)
+	if currentTask == nil {
+		return assignees, errors.New("current task empty")
+	}
+	tasks, err := w.GetAllSubTasks(accessToken, taskId)
+	if err != nil {
+		return nil, err
+	}
 	r := regexp.MustCompile(filter)
 	if matched := r.MatchString(currentTask.Title); matched {
 		assignees = append(assignees, currentTask.Properties.Assignee)
@@ -165,24 +189,33 @@ func (w *Worktile) GetAllAssigneeUidsFilterByTitle(accessToken string, taskId st
 			assignees = append(assignees, task.Properties.Assignee)
 		}
 	}
-	return assignees
+	return assignees, nil
 }
 
-func (w *Worktile) GetAllAssigneeNamesFilterByTitle(accessToken string, taskId string, filter string) []string {
-	assignees := w.GetAllAssigneeUidsFilterByTitle(accessToken, taskId, filter)
-	users := w.GetUsersByUids(accessToken, assignees)
+func (w *Worktile) GetAllAssigneeNamesFilterByTitle(accessToken string, taskId string, filter string) ([]string, error) {
+	assignees, err := w.GetAllAssigneeUidsFilterByTitle(accessToken, taskId, filter)
+	if err != nil {
+		return nil, err
+	}
+	users, err := w.GetUsersByUids(accessToken, assignees)
+	if err != nil {
+		return nil, err
+	}
 	names := make([]string, 0, len(users))
 	for _, user := range users {
 		names = append(names, user.DisplayName)
 	}
-	return names
+	return names, nil
 }
 
-func (w *Worktile) GetMainTaskDetail(accessToken string, taskId string) *TaskDetail {
+func (w *Worktile) GetMainTaskDetail(accessToken string, taskId string) (*TaskDetail, error) {
 	var mainTaskId string
 	mainTaskId = taskId
 	for {
-		mainTask := w.GetTaskById(accessToken, mainTaskId)
+		mainTask, err := w.GetTaskById(accessToken, mainTaskId)
+		if err != nil {
+			return nil, err
+		}
 		if mainTask == nil || mainTask.ParentId == "" {
 			break
 		} else {
