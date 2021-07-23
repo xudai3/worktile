@@ -224,3 +224,28 @@ func (w *Worktile) GetMainTaskDetail(accessToken string, taskId string) (*TaskDe
 	}
 	return w.GetTaskById(accessToken, mainTaskId)
 }
+
+func (w *Worktile) GetParticipantUids(accessToken string, taskId string) ([]string, error) {
+	taskDetail, err := w.GetTaskById(accessToken, taskId)
+	if err != nil {
+		return nil, err
+	}
+	return taskDetail.Properties.Participant, nil
+}
+
+func (w *Worktile) GetParticipantNames(accessToken string, taskId string) ([]string, error) {
+	Uids, err := w.GetParticipantUids(accessToken, taskId)
+	if err != nil {
+		return nil, err
+	}
+	userNames := make([]string, 0)
+	for _, uid := range Uids {
+		user, err := w.GetUserByUid(accessToken, uid)
+		if err != nil {
+			logger.Error(err)
+			continue
+		}
+		userNames = append(userNames, user.DisplayName)
+	}
+	return userNames, nil
+}
