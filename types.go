@@ -110,14 +110,14 @@ type TaskDetail struct {
 }
 
 type TaskProperty struct {
-	Assignee    string   `json:"assignee,omitempty"`
-	Start       DateInfo `json:"start,omitempty"`
-	Due         DateInfo `json:"due,omitempty"`
-	Tag         []string `json:"tag,omitempty"`
-	Desc        string   `json:"desc,omitempty"`
-	Priority    string   `json:"priority,omitempty"`
-	Participant []string `json:"participant,omitempty"` // 参与人
-	Attachment  []string `json:"attachment,omitempty"`  // 附件
+	Assignee    string    `json:"assignee,omitempty"`
+	Start       DateInfo  `json:"start,omitempty"`
+	Due         DateInfo  `json:"due,omitempty"`
+	Tag         []TaskTag `json:"tag,omitempty"`
+	Desc        string    `json:"desc,omitempty"`
+	Priority    string    `json:"priority,omitempty"`
+	Participant []string  `json:"participant,omitempty"` // 参与人
+	Attachment  []string  `json:"attachment,omitempty"`  // 附件
 }
 
 type TaskState struct {
@@ -147,4 +147,11 @@ type UserDetail struct {
 	Avatar            string `json:"avatar"`
 	Status            int    `json:"status"`
 	DisplayNamePinyin string `json:"display_name_pinyin"`
+}
+
+type TaskTag struct {
+	Id     string `json:"_id,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Color  string `json:"color,omitempty"`
+	ModeId string `json:"mode_id,omitempty"`
 }
