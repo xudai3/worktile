@@ -54,6 +54,25 @@ func (w *Worktile) GetTaskById(accessToken string, taskId string) (*TaskDetail, 
 	return rsp[0], nil
 }
 
+func (w *Worktile) GetRelationTasks(accessToken string, taskId string) ([]TaskDetail, error) {
+	req := GetTaskDetailReq{AccessToken: accessToken, Fields: DefaultTaskFields, TaskId: taskId}
+	var rsp []TaskDetail
+	bytes, err := w.Client.Get(ApiGetRelationTasks, utils.ConvertStructToMap(req), utils.BuildTokenHeaderOptions(accessToken))
+	if err != nil {
+		logger.Errorf("GetRelationTasks>%s detail failed:%v\n", taskId, err)
+		return nil, err
+	}
+	err = json.Unmarshal(bytes, &rsp)
+	if err != nil {
+		logger.Errorf("GetRelationTasks>unmarshal taskdetails error:%v", err)
+		return nil, err
+	}
+	if len(rsp) == 0 {
+		return nil, errors.New("GetRelationTasks>result empty")
+	}
+	return rsp, nil
+}
+
 func (w *Worktile) GetAssigneeNameByTaskId(accessToken string, taskId string) (string, error) {
 	task, err := w.GetTaskById(accessToken, taskId)
 	if err != nil {

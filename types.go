@@ -90,6 +90,12 @@ type GetTaskDetailsReq struct {
 	TaskIds     string `json:"task_ids"`
 }
 
+type GetTaskDetailReq struct {
+	AccessToken string `json:"access_token"`
+	Fields      string `json:"fields"`
+	TaskId      string `json:"task_id"`
+}
+
 type TaskDetail struct {
 	Id          string       `json:"_id,omitempty"`
 	CreatedBy   string       `json:"created_by,omitempty"`
@@ -110,14 +116,14 @@ type TaskDetail struct {
 }
 
 type TaskProperty struct {
-	Assignee    string    `json:"assignee,omitempty"`
-	Start       DateInfo  `json:"start,omitempty"`
-	Due         DateInfo  `json:"due,omitempty"`
-	Tag         []TaskTag `json:"tag,omitempty"`
-	Desc        string    `json:"desc,omitempty"`
-	Priority    string    `json:"priority,omitempty"`
-	Participant []string  `json:"participant,omitempty"` // 参与人
-	Attachment  []string  `json:"attachment,omitempty"`  // 附件
+	Assignee    string       `json:"assignee,omitempty"`
+	Start       DateInfo     `json:"start,omitempty"`
+	Due         DateInfo     `json:"due,omitempty"`
+	Tag         []TaskTag    `json:"tag,omitempty"`
+	Desc        string       `json:"desc,omitempty"`
+	Priority    TaskPriority `json:"priority,omitempty"`
+	Participant []string     `json:"participant,omitempty"` // 参与人
+	Attachment  []string     `json:"attachment,omitempty"`  // 附件
 }
 
 type TaskState struct {
@@ -131,6 +137,13 @@ type TaskType struct {
 	Id          string `json:"_id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
+}
+
+type TaskPriority struct {
+	Id    string `json:"_id,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Color string `json:"color,omitempty"`
+	Icon  string `json:"icon,omitempty"`
 }
 
 // user types
