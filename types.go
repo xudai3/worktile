@@ -21,8 +21,8 @@ type HookUpdateTitle struct {
 }
 
 type HookUpdateDesc struct {
-	Event   string             `json:"event"`
-	Payload PayloadUpdateTitle `json:"payload"`
+	Event   string            `json:"event"`
+	Payload PayloadUpdateDesc `json:"payload"`
 }
 
 type PayloadCreateTask struct {
@@ -55,6 +55,28 @@ type PayloadUpdateTitle struct {
 	To       string         `json:"to"`
 	Task     TaskInfo       `json:"task"`
 	UpdateBy CommonUserInfo `json:"update_by"`
+}
+
+type PayloadUpdateDesc struct {
+	From     string         `json:"from"`
+	To       string         `json:"to"`
+	Task     TaskInfo       `json:"task"`
+	UpdateBy CommonUserInfo `json:"update_by"`
+}
+
+type DescRTFChild struct {
+	Text string `json:"text"`
+}
+
+type DescRTF struct {
+	Type      string         `json:"type"`
+	Key       string         `json:"key"`
+	Children  []DescRTFChild `json:"children"`
+	Name      string         `json:"name"`
+	Width     float64        `json:"width"`
+	Height    float64        `json:"height"`
+	ThumbUrl  string         `json:"thumbUrl"`
+	OriginUrl string         `json:"originUrl"`
 }
 
 type TaskInfo struct {

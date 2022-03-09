@@ -268,3 +268,20 @@ func (w *Worktile) GetParticipantNames(accessToken string, taskId string) ([]str
 	}
 	return userNames, nil
 }
+
+func (w *Worktile) GetDescRTFInfo(descs []DescRTF) string {
+	var descString string
+	for i, desc := range descs {
+		if i != 0 {
+			descString += "\n"
+		}
+		if desc.Type == "paragraph" {
+			for _, child := range desc.Children {
+				descString += child.Text
+			}
+		} else if desc.Type == "image" {
+			descString += desc.OriginUrl
+		}
+	}
+	return descString
+}
