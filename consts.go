@@ -20,10 +20,13 @@ const (
 	StatusToBeConfirmed = "待确认"
 	StatusCompleted     = "已完成"
 	StatusPending       = "挂起"
+	StatusOpen          = "打开"
+	StatusRepairing     = "修复中"
+	StatusSolved        = "已解决"
 )
 
 const (
-	DefaultTaskFields = "assignee,participant,start,due,tag,priority,desc,attachment"
+	DefaultTaskFields = "assignee,participant,start,due,tag,priority,desc,attachment,qp_version,rwxqlx"
 	FieldAssignee     = "assignee"
 	FieldParticipant  = "participant"
 	FieldStart        = "start"

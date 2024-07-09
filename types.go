@@ -146,6 +146,15 @@ type TaskProperty struct {
 	Priority    TaskPriority `json:"priority,omitempty"`
 	Participant []string     `json:"participant,omitempty"` // 参与人
 	Attachment  []string     `json:"attachment,omitempty"`  // 附件
+	Version     CustomTag    `json:"qp_version,omitempty"`
+	TaskType    CustomTag    `json:"rwxqlx,omitempty"`
+}
+
+type CustomTag struct {
+	Id           string `json:"_id,omitempty"`
+	Text         string `json:"text,omitempty"`
+	Color        string `json:"color,omitempty"`
+	DataSourceId string `json:"data_source_id,omitempty"`
 }
 
 type TaskState struct {
