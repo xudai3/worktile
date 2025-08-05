@@ -26,7 +26,7 @@ const (
 )
 
 const (
-	DefaultTaskFields = "assignee,participant,start,due,tag,priority,desc,attachment,qp_version,rwxqlx"
+	DefaultTaskFields = "assignee,participant,start,due,tag,priority,desc,attachment,qp_version,rwxqlx,qpbug"
 	FieldAssignee     = "assignee"
 	FieldParticipant  = "participant"
 	FieldStart        = "start"

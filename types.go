@@ -25,6 +25,11 @@ type HookUpdateDesc struct {
 	Payload PayloadUpdateDesc `json:"payload"`
 }
 
+type HookUpdateTime struct {
+	Event   string            `json:"event"`
+	Payload PayloadUpdateTime `json:"payload"`
+}
+
 type PayloadCreateTask struct {
 	Id         string         `json:"id"`
 	Title      string         `json:"title"`
@@ -60,6 +65,13 @@ type PayloadUpdateTitle struct {
 type PayloadUpdateDesc struct {
 	From     string         `json:"from"`
 	To       string         `json:"to"`
+	Task     TaskInfo       `json:"task"`
+	UpdateBy CommonUserInfo `json:"update_by"`
+}
+
+type PayloadUpdateTime struct {
+	From     DateInfo       `json:"from"`
+	To       DateInfo       `json:"to"`
 	Task     TaskInfo       `json:"task"`
 	UpdateBy CommonUserInfo `json:"update_by"`
 }
@@ -146,8 +158,9 @@ type TaskProperty struct {
 	Priority    TaskPriority `json:"priority,omitempty"`
 	Participant []string     `json:"participant,omitempty"` // 参与人
 	Attachment  []string     `json:"attachment,omitempty"`  // 附件
-	Version     CustomTag    `json:"qp_version,omitempty"`
-	TaskType    CustomTag    `json:"rwxqlx,omitempty"`
+	Version     CustomTag    `json:"qp_version,omitempty"`  //所属周版本
+	TaskType    CustomTag    `json:"rwxqlx,omitempty"`      // 任务类型
+	BugType     CustomTag    `json:"qpbug,omitempty"`       //BUG类型
 }
 
 type CustomTag struct {
